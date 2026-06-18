@@ -1,11 +1,12 @@
 require("dotenv").config();
 const express = require("express");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 const cors = require("cors");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ─── Rate Limiter: max 5 submissions per IP per 10 minutes ───────────────────
 const rateLimiter = new RateLimiterMemory({
@@ -21,30 +22,20 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. Postman, server-to-server)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
       return callback(new Error(`CORS: Origin ${origin} not allowed`));
     },
-    methods: ["POST"],
+    methods: ["POST", "GET"],
   })
 );
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Gmail SMTP Transporter ───────────────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,      // your Gmail address
-    pass: process.env.GMAIL_APP_PASS,  // your Google App Password
-  },
-});
-
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
-  res.json({ status: "Form API is running.", version: "1.0.1" });
+  res.json({ status: "Form API is running.", version: "1.1.0" });
 });
 
 app.get("/health", (req, res) => {
@@ -78,28 +69,13 @@ app.post("/submit", async (req, res) => {
     return res.status(400).json({ success: false, message: "Invalid sender email format." });
   }
 
-  // 5. Build the email body from all submitted fields
-  let bodyLines = [
-    `Name:    ${name}`,
-    `Email:   ${email}`,
-    `Message:\n${message}`,
-  ];
-
-  // Append any extra fields (e.g. "service", "phone", etc.)
-  for (const [key, value] of Object.entries(extraFields)) {
-    if (value) bodyLines.splice(2, 0, `${capitalize(key)}: ${value}`);
-  }
-
-  const emailBody = bodyLines.join("\n\n");
-
-  // 6. Send the email
+  // 5. Send via Resend
   try {
-    await transporter.sendMail({
-      from: `"Form Submission API" <${process.env.GMAIL_USER}>`,
+    await resend.emails.send({
+      from: process.env.FROM_EMAIL || "Form API <onboarding@resend.dev>",
       to: to_email,
-      replyTo: email,
+      reply_to: email,
       subject: subject || `New form submission from ${name}`,
-      text: emailBody,
       html: buildHtmlEmail(name, email, message, extraFields, subject),
     });
 
