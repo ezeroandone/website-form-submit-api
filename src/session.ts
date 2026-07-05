@@ -45,9 +45,9 @@ export async function deleteSession(
 /** Build Set-Cookie header value for the session cookie */
 export function sessionCookie(sessionId: string, clear = false): string {
   if (clear) {
-    return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+    return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=None; Domain=.ezeroandone.io; Max-Age=0`;
   }
-  return `${SESSION_COOKIE}=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_TTL}`;
+  return `${SESSION_COOKIE}=${sessionId}; Path=/; HttpOnly; Secure; SameSite=None; Domain=.ezeroandone.io; Max-Age=${SESSION_TTL}`;
 }
 
 /** Extract the session ID from the Cookie header */

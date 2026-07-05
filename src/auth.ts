@@ -35,7 +35,7 @@ export async function handleGoogleLogin(request: Request, env: Env): Promise<Res
     prompt: "select_account",
   });
 
-  const stateCookie = `${OAUTH_STATE_COOKIE}=${state}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${OAUTH_STATE_TTL}`;
+  const stateCookie = `${OAUTH_STATE_COOKIE}=${state}; Path=/; HttpOnly; Secure; SameSite=None; Domain=.ezeroandone.io; Max-Age=${OAUTH_STATE_TTL}`;
 
   return new Response(null, {
     status: 302,
@@ -62,7 +62,7 @@ export async function handleGoogleCallback(request: Request, env: Env): Promise<
     ?.slice(OAUTH_STATE_COOKIE.length + 1);
 
   // Clear state cookie regardless of outcome
-  const clearStateCookie = `${OAUTH_STATE_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+  const clearStateCookie = `${OAUTH_STATE_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=None; Domain=.ezeroandone.io; Max-Age=0`;
 
   if (error) {
     return Response.redirect(`${env.FRONTEND_URL}/?error=oauth_denied`, 302);
