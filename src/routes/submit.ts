@@ -65,7 +65,10 @@ export async function handleSubmit(request: Request, env: Env): Promise<Response
     } catch {
       return json({ success: false, message: "Forbidden: Invalid origin." }, 403, cors);
     }
-    if (originHost !== website.domain) {
+    // Normalise: treat www.example.com and example.com as the same host so
+    // users don't need to register both variants.
+    const normalise = (h: string) => h.replace(/^www\./, "");
+    if (normalise(originHost) !== normalise(website.domain)) {
       return json({ success: false, message: "Forbidden: Origin not allowed." }, 403, cors);
     }
   }
