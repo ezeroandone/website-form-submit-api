@@ -1,11 +1,9 @@
 import { Env, User } from "./types";
-import { uuid, randomHex, now, json } from "./utils";
+import { uuid, randomHex, now } from "./utils";
 import { createSession, sessionCookie } from "./session";
-import { authCorsHeaders } from "./cors";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
-const OAUTH_STATE_COOKIE = "fs_oauth_state";
 const OAUTH_STATE_TTL = 600; // 10 minutes
 
 interface GoogleTokenResponse {
@@ -25,6 +23,10 @@ export async function handleGoogleLogin(request: Request, env: Env): Promise<Res
   const state = await randomHex(16);
   const redirectUri = `${env.API_URL}/auth/callback`;
 
+  // Store state in KV with 10-minute TTL instead of a cookie
+  // (cross-domain cookies are unreliable across redirect flows)
+  await env.SESSIONS.put(`oauth_state:${state}`, "1", { expirationTtl: OAUTH_STATE_TTL });
+
   const params = new URLSearchParams({
     client_id: env.GOOGLE_CLIENT_ID,
     redirect_uri: redirectUri,
@@ -35,14 +37,10 @@ export async function handleGoogleLogin(request: Request, env: Env): Promise<Res
     prompt: "select_account",
   });
 
-  const stateCookie = `${OAUTH_STATE_COOKIE}=${state}; Path=/; HttpOnly; Secure; SameSite=None; Domain=.ezeroandone.io; Max-Age=${OAUTH_STATE_TTL}`;
-
   return new Response(null, {
     status: 302,
     headers: {
       Location: `${GOOGLE_AUTH_URL}?${params.toString()}`,
-      "Set-Cookie": stateCookie,
-      ...authCorsHeaders(),
     },
   });
 }
@@ -54,38 +52,24 @@ export async function handleGoogleCallback(request: Request, env: Env): Promise<
   const state = url.searchParams.get("state");
   const error = url.searchParams.get("error");
 
-  const cookieHeader = request.headers.get("Cookie") ?? "";
-  const storedState = cookieHeader
-    .split(";")
-    .map((c) => c.trim())
-    .find((c) => c.startsWith(`${OAUTH_STATE_COOKIE}=`))
-    ?.slice(OAUTH_STATE_COOKIE.length + 1);
-
-  // Clear state cookie regardless of outcome
-  const clearStateCookie = `${OAUTH_STATE_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=None; Domain=.ezeroandone.io; Max-Age=0`;
-
   if (error) {
     return Response.redirect(`${env.FRONTEND_URL}/?error=oauth_denied`, 302);
   }
 
-  if (!state || !storedState || state !== storedState) {
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: `${env.FRONTEND_URL}/?error=invalid_state`,
-        "Set-Cookie": clearStateCookie,
-      },
-    });
+  if (!state) {
+    return Response.redirect(`${env.FRONTEND_URL}/?error=invalid_state`, 302);
   }
 
+  // Verify state from KV (replaces cookie-based state check)
+  const storedState = await env.SESSIONS.get(`oauth_state:${state}`);
+  if (!storedState) {
+    return Response.redirect(`${env.FRONTEND_URL}/?error=invalid_state`, 302);
+  }
+  // Delete state from KV immediately — single use
+  await env.SESSIONS.delete(`oauth_state:${state}`);
+
   if (!code) {
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: `${env.FRONTEND_URL}/?error=missing_code`,
-        "Set-Cookie": clearStateCookie,
-      },
-    });
+    return Response.redirect(`${env.FRONTEND_URL}/?error=missing_code`, 302);
   }
 
   // Exchange code for tokens
@@ -93,13 +77,7 @@ export async function handleGoogleCallback(request: Request, env: Env): Promise<
   try {
     profile = await exchangeCodeForProfile(code, env);
   } catch {
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: `${env.FRONTEND_URL}/?error=token_exchange_failed`,
-        "Set-Cookie": clearStateCookie,
-      },
-    });
+    return Response.redirect(`${env.FRONTEND_URL}/?error=token_exchange_failed`, 302);
   }
 
   // Upsert user in D1
@@ -112,10 +90,7 @@ export async function handleGoogleCallback(request: Request, env: Env): Promise<
     status: 302,
     headers: {
       Location: `${env.FRONTEND_URL}/dashboard`,
-      "Set-Cookie": [
-        clearStateCookie,
-        sessionCookie(sessionId),
-      ].join(", "),
+      "Set-Cookie": sessionCookie(sessionId),
     },
   });
 }
