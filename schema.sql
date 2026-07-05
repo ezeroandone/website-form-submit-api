@@ -12,11 +12,14 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS websites (
-  id           TEXT PRIMARY KEY,
-  user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-  domain       TEXT NOT NULL,
-  api_key_hash TEXT NOT NULL,
-  created_at   TEXT NOT NULL,
+  id             TEXT PRIMARY KEY,
+  user_id        TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  domain         TEXT NOT NULL,
+  api_key_hash   TEXT NOT NULL,
+  notify_email   TEXT NOT NULL DEFAULT '',
+  email_verified INTEGER NOT NULL DEFAULT 0,
+  verify_token   TEXT,
+  created_at     TEXT NOT NULL,
   UNIQUE (user_id, domain)
 );
 
