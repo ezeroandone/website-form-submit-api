@@ -1,0 +1,16 @@
+# ══════════════════════════════════════════════════════════════════
+#  FormSend API — Local Dev Secrets
+#
+#  Copy this file to .dev.vars and fill in real values.
+#  Wrangler reads .dev.vars automatically during `wrangler dev`.
+#  This file is gitignored — never commit .dev.vars
+# ══════════════════════════════════════════════════════════════════
+
+GOOGLE_CLIENT_ID=xxxxxxxxxxxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxx
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+FROM_EMAIL=FormSend <noreply@ezeroandone.io>
+PAYSTACK_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ADMIN_GOOGLE_EMAIL=ezeroandone@gmail.com
+FRONTEND_URL=http://localhost:3000
+API_URL=http://localhost:8787
