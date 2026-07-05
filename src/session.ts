@@ -45,11 +45,14 @@ export async function deleteSession(
 /** Build Set-Cookie header value for the session cookie */
 export function sessionCookie(sessionId: string, clear = false): string {
   if (clear) {
-    return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=None; Domain=.ezeroandone.io; Max-Age=0`;
+    return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Domain=.ezeroandone.io; Max-Age=0`;
   }
-  // SameSite=None is required for cross-site credentialed fetch (frontend ↔ API on different subdomains).
-  // Secure is mandatory when SameSite=None.
-  return `${SESSION_COOKIE}=${sessionId}; Path=/; HttpOnly; Secure; SameSite=None; Domain=.ezeroandone.io; Max-Age=${SESSION_TTL}`;
+  // Both formsend.ezeroandone.io (frontend) and api.formsend.ezeroandone.io (API)
+  // share the same registrable domain (ezeroandone.io), so this is a same-site
+  // context. SameSite=Lax works correctly and is not blocked by third-party cookie
+  // restrictions in Chrome/Safari. SameSite=None would be blocked by modern browsers
+  // unless the user has explicitly disabled third-party cookie blocking.
+  return `${SESSION_COOKIE}=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Domain=.ezeroandone.io; Max-Age=${SESSION_TTL}`;
 }
 
 /** Extract the session ID from the Cookie header */
