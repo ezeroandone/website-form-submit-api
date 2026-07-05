@@ -1,0 +1,37 @@
+name = "formsend-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "formsend-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["RateLimiter"]
+
+[vars]
+FRONTEND_URL = "https://formsend.ezeroandone.io"
+API_URL = "https://api.formsend.ezeroandone.io"
+
+# Set these secrets with: wrangler secret put SECRET_NAME
+# GOOGLE_CLIENT_ID
+# GOOGLE_CLIENT_SECRET
+# RESEND_API_KEY
+# FROM_EMAIL          (e.g. "FormSend <noreply@ezeroandone.io>")
+# PAYSTACK_SECRET_KEY
+# ADMIN_GOOGLE_EMAIL  (ezeroandone@gmail.com)
+
+[routes]
+# Custom domain is configured in Cloudflare dashboard
+# api.formsend.ezeroandone.io → this worker

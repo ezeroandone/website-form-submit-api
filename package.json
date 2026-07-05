@@ -1,23 +1,23 @@
 {
-  "name": "form-submission-api",
-  "version": "1.0.0",
-  "description": "Self-hosted form submission API — sends emails via Gmail SMTP",
-  "main": "server.js",
+  "name": "formsend-api",
+  "version": "2.0.0",
+  "description": "FormSend — Cloudflare Worker backend",
+  "private": true,
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create formsend-db",
+    "db:migrate": "wrangler d1 execute formsend-db --file=./schema.sql",
+    "db:migrate:remote": "wrangler d1 execute formsend-db --remote --file=./schema.sql",
+    "kv:create": "wrangler kv namespace create SESSIONS",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "resend": "^2.1.0",
-    "rate-limiter-flexible": "^5.0.3"
+    "resend": "^3.5.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "@cloudflare/workers-types": "^4.20240925.0",
+    "typescript": "^5.5.4",
+    "wrangler": "^3.78.12"
   }
 }
