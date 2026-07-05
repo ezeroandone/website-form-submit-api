@@ -6,11 +6,11 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "formsend-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "ff4587a3-c1f5-4dde-8b01-53f09f5e5fa6"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+id = "e43ad599fe9d4e7b9b925f3ea1c8fe7a"
 
 [[durable_objects.bindings]]
 name = "RATE_LIMITER"
@@ -24,14 +24,8 @@ new_classes = ["RateLimiter"]
 FRONTEND_URL = "https://formsend.ezeroandone.io"
 API_URL = "https://api.formsend.ezeroandone.io"
 
-# Set these secrets with: wrangler secret put SECRET_NAME
-# GOOGLE_CLIENT_ID
-# GOOGLE_CLIENT_SECRET
-# RESEND_API_KEY
-# FROM_EMAIL          (e.g. "FormSend <noreply@ezeroandone.io>")
-# PAYSTACK_SECRET_KEY
-# ADMIN_GOOGLE_EMAIL  (ezeroandone@gmail.com)
-
-[routes]
-# Custom domain is configured in Cloudflare dashboard
-# api.formsend.ezeroandone.io → this worker
+# Secrets are set via: wrangler secret put SECRET_NAME
+# Required secrets: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, RESEND_API_KEY,
+#                   FROM_EMAIL, PAYSTACK_SECRET_KEY, ADMIN_GOOGLE_EMAIL
+# Custom domain (api.formsend.ezeroandone.io) is configured in the Cloudflare dashboard
+# under Workers & Pages → formsend-api → Settings → Triggers → Custom Domains
