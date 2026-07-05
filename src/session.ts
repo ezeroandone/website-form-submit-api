@@ -47,6 +47,8 @@ export function sessionCookie(sessionId: string, clear = false): string {
   if (clear) {
     return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=None; Domain=.ezeroandone.io; Max-Age=0`;
   }
+  // SameSite=None is required for cross-site credentialed fetch (frontend ↔ API on different subdomains).
+  // Secure is mandatory when SameSite=None.
   return `${SESSION_COOKIE}=${sessionId}; Path=/; HttpOnly; Secure; SameSite=None; Domain=.ezeroandone.io; Max-Age=${SESSION_TTL}`;
 }
 

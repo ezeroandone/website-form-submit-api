@@ -3,6 +3,7 @@ import { json } from "./utils";
 import { enforceAuthCors, handleAuthPreflight, authCorsHeaders } from "./cors";
 import { authenticate, requireAdmin } from "./middleware";
 import { handleGoogleLogin, handleGoogleCallback, handleLogout } from "./auth";
+import { sessionCookie } from "./session";
 import { handleSubmit } from "./routes/submit";
 import { handleMe, handleListWebsites, handleCreateWebsite, handleDeleteWebsite, handleRotateKey, handleResendVerification, handleVerifyEmail } from "./routes/api";
 import { handlePaymentInitiate, handlePaymentWebhook } from "./routes/payments";
@@ -56,7 +57,7 @@ export default {
         if (sessionId) await env.SESSIONS.delete(sessionId);
         return new Response(null, {
           status: 302,
-          headers: { Location: env.FRONTEND_URL, "Set-Cookie": "fs_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0" },
+          headers: { Location: env.FRONTEND_URL, "Set-Cookie": sessionCookie("", true) },
         });
       }
 
