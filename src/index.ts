@@ -4,7 +4,7 @@ import { enforceAuthCors, handleAuthPreflight, authCorsHeaders } from "./cors";
 import { authenticate, requireAdmin } from "./middleware";
 import { handleGoogleLogin, handleGoogleCallback, handleLogout } from "./auth";
 import { handleSubmit } from "./routes/submit";
-import { handleMe, handleListWebsites, handleCreateWebsite, handleDeleteWebsite, handleRotateKey } from "./routes/api";
+import { handleMe, handleListWebsites, handleCreateWebsite, handleDeleteWebsite, handleRotateKey, handleResendVerification, handleVerifyEmail } from "./routes/api";
 import { handlePaymentInitiate, handlePaymentWebhook } from "./routes/payments";
 import { handleAdminListUsers, handleAdminUpdateUser } from "./routes/admin";
 
@@ -68,6 +68,11 @@ export default {
       return handlePaymentWebhook(request, env);
     }
 
+    // ── Email verification (public — clicked from email link) ─────────────────
+    if (path === "/api/verify-email" && method === "GET") {
+      return handleVerifyEmail(request, env);
+    }
+
     // ── Authenticated API routes ─────────────────────────────────────────────
     if (path.startsWith("/api/")) {
       if (method === "OPTIONS") return handleAuthPreflight();
@@ -101,6 +106,11 @@ export default {
       // ── Key rotation
       if (path === "/api/keys/rotate" && method === "POST") {
         return handleRotateKey(request, ctx, env);
+      }
+
+      // ── Resend verification email
+      if (path === "/api/websites/resend-verification" && method === "POST") {
+        return handleResendVerification(request, ctx, env);
       }
 
       // ── Payments

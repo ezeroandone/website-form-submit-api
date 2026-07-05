@@ -57,7 +57,7 @@ export async function handleSubmit(request: Request, env: Env): Promise<Response
     return json({ success: false, message: "Unauthorized: Invalid API key." }, 401, cors);
   }
 
-  // ── 4. Origin check ────────────────────────────────────────────────────────
+  // ── 4. Origin check ─────────────────────────────────────────────────────────
   if (origin) {
     let originHost: string;
     try {
@@ -69,7 +69,11 @@ export async function handleSubmit(request: Request, env: Env): Promise<Response
       return json({ success: false, message: "Forbidden: Origin not allowed." }, 403, cors);
     }
   }
-  // If no Origin header (e.g. server-side POST) — allow through
+
+  // ── 4b. Email verification check ─────────────────────────────────────────
+  if (!website.email_verified) {
+    return json({ success: false, message: "This website's notification email has not been verified yet." }, 403, cors);
+  }
 
   // ── 5. Rate limiting via Durable Object ───────────────────────────────────
   const ip = getIP(request);
@@ -117,7 +121,7 @@ export async function handleSubmit(request: Request, env: Env): Promise<Response
 
   try {
     await sendFormEmail(env, {
-      to: website.owner_email,
+      to: website.notify_email,
       replyTo: email,
       subject: emailSubject,
       name,

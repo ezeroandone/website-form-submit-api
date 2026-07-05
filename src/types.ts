@@ -32,6 +32,9 @@ export interface Website {
   user_id: string;
   domain: string;
   api_key_hash: string;
+  notify_email: string;
+  email_verified: number; // 0 | 1
+  verify_token: string | null;
   created_at: string;
 }
 
